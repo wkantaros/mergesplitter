@@ -17,7 +17,6 @@ contract Splitter is ISplitter, SplitterDeployer {
         external
         returns (address tokenS, address tokenW)
     {
-        // TODO: why does UniswapV3Factory.createPool use noDelegateCall?
         require(getW[token] == address(0));
         (tokenS, tokenW) = deploy(address(this), token);
         getS[token] = tokenS;

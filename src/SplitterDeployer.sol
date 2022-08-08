@@ -17,10 +17,10 @@ contract SplitterDeployer is ISplitterDeployer {
 
     Parameters public override parameters;
 
-    /// @dev Deploys token promises with the given parameters by transiently setting the parameters
+    /// @dev Deploys promise tokens with the given parameters by transiently setting the parameters
     /// storage slot and then clearing it after deploying the tokens.
-    /// @param factory The contract address of the Uniswap V3 factory
-    /// @param baseToken The token we are creating promises for
+    /// @param factory The contract address of the Splitter
+    /// @param baseToken The address of the underlying token we are deploying promise tokens for
     function deploy(address factory, address baseToken)
         internal
         returns (address tokenS, address tokenW)
