@@ -9,19 +9,19 @@ import {IERC20Promise} from "./interfaces/IERC20Promise.sol";
 import {ISplitter} from "./interfaces/ISplitter.sol";
 
 contract Splitter is ISplitter, SplitterDeployer {
-    mapping(address => address) public override getS;
-    mapping(address => address) public override getW;
+    mapping(address => address) public override getPosPromise;
+    mapping(address => address) public override getPowPromise;
 
     // No need to check merge state in createSplit imo
     function createSplit(address token)
         external
-        returns (address tokenS, address tokenW)
+        returns (address posPromise, address powPromise)
     {
-        require(getW[token] == address(0));
-        (tokenS, tokenW) = deploy(address(this), token);
-        getS[token] = tokenS;
-        getW[token] = tokenW;
-        emit SplitterCreated(token, tokenS, tokenW);
+        require(getPowPromise[token] == address(0), "Split exists");
+        (posPromise, powPromise) = deploy(address(this), token);
+        getPosPromise[token] = posPromise;
+        getPowPromise[token] = powPromise;
+        emit SplitterCreated(token, posPromise, powPromise);
     }
 
     enum MergeState {
@@ -36,9 +36,9 @@ contract Splitter is ISplitter, SplitterDeployer {
         //  But we should then only mint the correct promise token, not both.
         require(mergeState() == MergeState.Before, "Must be before merge");
 
-        address sPromise = getS[baseToken];
-        require(sPromise != address(0), "Must call createSplit");
-        address wPromise = getW[baseToken];
+        address posPromise = getPosPromise[baseToken];
+        require(posPromise != address(0), "Must call createSplit");
+        address powPromise = getPowPromise[baseToken];
 
         // Transfer underlying
         SafeTransferLib.safeTransferFrom(
@@ -46,8 +46,8 @@ contract Splitter is ISplitter, SplitterDeployer {
         );
 
         // Mint PoW and PoS promises
-        IERC20Promise(sPromise).mint(msg.sender, amount);
-        IERC20Promise(wPromise).mint(msg.sender, amount);
+        IERC20Promise(posPromise).mint(msg.sender, amount);
+        IERC20Promise(powPromise).mint(msg.sender, amount);
 
         emit TokenSplit(baseToken, amount);
     }
@@ -62,22 +62,22 @@ contract Splitter is ISplitter, SplitterDeployer {
 
         // Burn promise token
         if (currentMergeState == MergeState.Before) {
-            address sPromise = getS[baseToken];
-            require(sPromise != address(0), "Must call createSplit");
-            address wPromise = getW[baseToken];
+            address posPromise = getPosPromise[baseToken];
+            require(posPromise != address(0), "Must call createSplit");
+            address powPromise = getPowPromise[baseToken];
 
             // Before merge, burn both PoW and PoS promises
-            IERC20Promise(sPromise).burn(msg.sender, amount);
-            IERC20Promise(wPromise).burn(msg.sender, amount);
+            IERC20Promise(posPromise).burn(msg.sender, amount);
+            IERC20Promise(powPromise).burn(msg.sender, amount);
         } else if (currentMergeState == MergeState.AfterPoS) {
-            address sPromise = getS[baseToken];
-            require(sPromise != address(0), "Must call createSplit");
+            address posPromise = getPosPromise[baseToken];
+            require(posPromise != address(0), "Must call createSplit");
 
-            IERC20Promise(sPromise).burn(msg.sender, amount);
+            IERC20Promise(posPromise).burn(msg.sender, amount);
         } else {
-            address wPromise = getW[baseToken];
-            require(wPromise != address(0), "Must call createSplit");
-            IERC20Promise(wPromise).burn(msg.sender, amount);
+            address powPromise = getPowPromise[baseToken];
+            require(powPromise != address(0), "Must call createSplit");
+            IERC20Promise(powPromise).burn(msg.sender, amount);
         }
 
         emit TokenMerged(baseToken, amount);

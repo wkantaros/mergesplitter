@@ -23,7 +23,7 @@ contract SplitterDeployer is ISplitterDeployer {
     /// @param baseToken The address of the underlying token we are deploying promise tokens for
     function deploy(address factory, address baseToken)
         internal
-        returns (address tokenS, address tokenW)
+        returns (address posPromise, address powPromise)
     {
         string memory baseName = ERC20(baseToken).name();
         string memory baseSymbol = ERC20(baseToken).symbol();
@@ -38,7 +38,7 @@ contract SplitterDeployer is ISplitterDeployer {
             symbol: string.concat(baseSymbol, "S")
         });
 
-        tokenS = address(
+        posPromise = address(
             new ERC20Promise{salt: keccak256(abi.encode(baseToken, true))}()
         );
 
@@ -51,7 +51,7 @@ contract SplitterDeployer is ISplitterDeployer {
             symbol: string.concat(baseSymbol, "W")
         });
 
-        tokenW = address(
+        powPromise = address(
             new ERC20Promise{salt: keccak256(abi.encode(baseToken, false))}()
         );
 
