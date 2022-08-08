@@ -6,6 +6,10 @@ interface ISplitter {
         address indexed baseToken, address posPromise, address powPromise
     );
 
+    event TokenSplit(address indexed baseToken, uint256 amount);
+
+    event TokenMerged(address indexed baseToken, uint256 amount);
+
     function getS(address baseToken) external view returns (address sPromise);
     function getW(address baseToken) external view returns (address wPromise);
 }

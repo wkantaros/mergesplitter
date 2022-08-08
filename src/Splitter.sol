@@ -48,6 +48,8 @@ contract Splitter is ISplitter, SplitterDeployer {
         // Mint PoW and PoS promises
         IERC20Promise(sPromise).mint(msg.sender, amount);
         IERC20Promise(wPromise).mint(msg.sender, amount);
+
+        emit TokenSplit(baseToken, amount);
     }
 
     // burn burns promise tokens and transfers the underlying to msg.sender
@@ -77,6 +79,8 @@ contract Splitter is ISplitter, SplitterDeployer {
             require(wPromise != address(0), "Must call createSplit");
             IERC20Promise(wPromise).burn(msg.sender, amount);
         }
+
+        emit TokenMerged(baseToken, amount);
     }
 
     /**
