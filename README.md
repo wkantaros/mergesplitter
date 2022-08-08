@@ -2,7 +2,7 @@
 
 ## Description
 
-Merge Splitter is a set of smart contract and interfaces that enable *XXX* [insert token] holders to split their token into two exposures by depositing *XXX* into a vault and receiving *XXXPoS* and *XXXPoW* in exchange. 
+Merge Splitter is a set of smart contract and interfaces that enable *XXX* [insert arbitrary token for *XXX*] holders to split their token into two exposures by depositing *XXX* into a vault and receiving *XXXPoS* and *XXXPoW* in exchange. 
 
 After the merge, *XXXPoS* will only be redeemable for *XXX* on the proof-of-stake chain and *XXXPoW* will only be redeemable for *XXX* on the proof-of-work chain. The *XXXPoS* trigger is trivial to impliment as the proof-of-stake chain will be live when ```block.difficulty > 2 ** 64 || block.difficulty == 0;```. When the previous statement evaluates to ```true``` redemptions of *XXXPoS* for *XXX* are enabled. 
 
