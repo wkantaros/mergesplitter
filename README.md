@@ -6,7 +6,7 @@ Merge Splitter is a set of smart contract and interfaces that enable ETH holders
 1. *Chainlink oracle call throws an error or stalls*. Since Chainlink has committed to only honoring the PoS chain, making a call to the Chainlink on the PoW chain will not work smoothly.
 2. *The price of ETH-stETH is greater than 3* (number subject to change). Since stETH on the PoW chain will be valueless post merge and ETH won't, we posit this is a reliable measure that the merge has happened.
 3. TBD
-To prevent the loss of funds in the case the merge never occurs, ETHPoW will be redeemable for ETH after ```MaxBlock`` has been reached. ```MaxBlock``` will be approximately 2 years (period subject to change) after the current expected time for the merge. If this happens, ETHPoW will trade similarly to a zero-coupon bond whose expiry is ```MaxBloxk`` (This is similar to the [Element Finance](https://docs.element.fi/) mechanism and other fixed-rate DeFi protocols).
+To prevent the loss of funds in the case the merge never occurs, ETHPoW will be redeemable for ETH after ```MaxBlock``` has been reached. ```MaxBlock``` will be approximately 2 years (period subject to change) after the current expected time for the merge. If this happens, ETHPoW will trade similarly to a zero-coupon bond whose expiry is ```MaxBloxk`` (This is similar to the [Element Finance](https://docs.element.fi/) mechanism and other fixed-rate DeFi protocols).
 
 Proof of concept / WIP.
 
