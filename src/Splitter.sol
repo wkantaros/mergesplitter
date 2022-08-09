@@ -13,15 +13,15 @@ contract Splitter is ISplitter, SplitterDeployer {
     mapping(address => address) public override getPowPromise;
 
     // No need to check merge state in createSplit imo
-    function createSplit(address token)
+    function createSplit(address baseToken)
         external
         returns (address posPromise, address powPromise)
     {
-        require(getPowPromise[token] == address(0), "Split exists");
-        (posPromise, powPromise) = deploy(address(this), token);
-        getPosPromise[token] = posPromise;
-        getPowPromise[token] = powPromise;
-        emit SplitterCreated(token, posPromise, powPromise);
+        require(getPowPromise[baseToken] == address(0), "Split exists");
+        (posPromise, powPromise) = deploy(address(this), baseToken);
+        getPosPromise[baseToken] = posPromise;
+        getPowPromise[baseToken] = powPromise;
+        emit SplitterCreated(baseToken, posPromise, powPromise);
     }
 
     enum MergeState {
@@ -53,9 +53,9 @@ contract Splitter is ISplitter, SplitterDeployer {
     }
 
     // burn burns promise tokens and transfers the underlying to msg.sender
-    function burn(address baseToken, uint256 amount, MergeState _ms) external {
+    function burn(address baseToken, uint256 amount, MergeState targetState) external {
         MergeState currentMergeState = mergeState();
-        require(currentMergeState == _ms, "Incorrect merge state");
+        require(currentMergeState == targetState, "Incorrect merge state");
 
         // Optimistically transfer underlying
         SafeTransferLib.safeTransfer(ERC20(baseToken), msg.sender, amount);
