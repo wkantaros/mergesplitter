@@ -94,8 +94,7 @@ contract Splitter is ISplitter, SplitterDeployer {
     }
 
     function haveWeMergedYetPoW() internal view returns (bool) {
-        // TODO
-        return false;
+        return chainid() != 1 && !(block.difficulty > 2 ** 64 || block.difficulty == 0);
     }
 
     function mergeState() internal view returns (MergeState) {
