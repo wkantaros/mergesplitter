@@ -30,29 +30,54 @@ contract Splitter is ISplitter, SplitterDeployer {
         AfterPoS
     }
 
-    // mint mints a promise token
+    // mint transfers underlying from msg.sender and mints them 1 or 2 promise tokens
+    // Mints 1 XXXW and 1 XXXS if pre-merge
+    // Mints 1 XXXS if on post-merge PoS
+    // Mints 1 XXXW if on post-merge PoW
+    //
+    // TODO(maybe): Add some mechanism to force value of XXXW / XXXS on PoS / PoW post-merge to zero.
+    //  This solves the "double airdrop" problem. Traditional infinite mint is the obvious solution.
+    //  But then there is an issue with overflowing the "totalSupply" of the ERC20Promise
     function mint(address baseToken, uint256 amount) external {
-        // TODO: Do we want to allow minting post merge? Probably imo for "arbitrage" reasons
-        //  But we should then only mint the correct promise token, not both.
-        require(mergeState() == MergeState.Before, "Must be before merge");
-
-        address posPromise = getPosPromise[baseToken];
-        require(posPromise != address(0), "Must call createSplit");
-        address powPromise = getPowPromise[baseToken];
-
         // Transfer underlying
         SafeTransferLib.safeTransferFrom(
             ERC20(baseToken), msg.sender, address(this), amount
         );
 
-        // Mint PoW and PoS promises
-        IERC20Promise(posPromise).mint(msg.sender, amount);
-        IERC20Promise(powPromise).mint(msg.sender, amount);
+        MergeState currentMergeState = mergeState();
+
+        if (currentMergeState == MergeState.Before) {
+            address posPromise = getPosPromise[baseToken];
+            require(posPromise != address(0), "Must call createSplit");
+            address powPromise = getPowPromise[baseToken];
+
+            // Mint PoW and PoS promises
+            IERC20Promise(posPromise).mint(msg.sender, amount);
+            IERC20Promise(powPromise).mint(msg.sender, amount);
+        } else if (currentMergeState == MergeState.AfterPoS) {
+            address posPromise = getPosPromise[baseToken];
+            require(posPromise != address(0), "Must call createSplit");
+
+            // Mint only PoS promise
+            IERC20Promise(posPromise).mint(msg.sender, amount);
+        } else {
+            address posPromise = getPosPromise[baseToken];
+            require(posPromise != address(0), "Must call createSplit");
+
+            // Mint only PoW promise
+            IERC20Promise(powPromise).mint(msg.sender, amount);
+        }
 
         emit TokenSplit(baseToken, amount);
     }
 
-    // burn burns promise tokens and transfers the underlying to msg.sender
+    // burn burns 1 or 2 promise tokens and transfers the underlying to msg.sender
+    // Burns 1 XXXW and 1 XXXS if pre-merge
+    // Burns 1 XXXS if on post-merge PoS
+    // Burns 1 XXXW if on post-merge PoW
+    //
+    // targetState enforces a deadline and prevents replay attacks
+    // in case Post-merge PoW changes chain ID but not network ID
     function burn(address baseToken, uint256 amount, MergeState targetState) external {
         MergeState currentMergeState = mergeState();
         require(currentMergeState == targetState, "Incorrect merge state");
@@ -60,7 +85,6 @@ contract Splitter is ISplitter, SplitterDeployer {
         // Optimistically transfer underlying
         SafeTransferLib.safeTransfer(ERC20(baseToken), msg.sender, amount);
 
-        // Burn promise token
         if (currentMergeState == MergeState.Before) {
             address posPromise = getPosPromise[baseToken];
             require(posPromise != address(0), "Must call createSplit");
@@ -93,8 +117,13 @@ contract Splitter is ISplitter, SplitterDeployer {
         return block.difficulty > 2 ** 64 || block.difficulty == 0;
     }
 
+    // TODO: A more general heuristic would be ideal.
+    //   Generalizing to the case where the difficulty bomb may or may not be defused
+    //   and the chain ID may or may not change.
+    //   Ideally, generalizing to _any_ PoW chain that is operating post-merge.
+    //   This seems to be a nontrivial problem.
     function haveWeMergedYetPoW() internal view returns (bool) {
-        return block.chainid != 1 && block.difficulty > 0 && block.difficulty < 2**64;
+        return block.chainid != 1;
     }
 
     function mergeState() internal view returns (MergeState) {
